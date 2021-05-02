@@ -2,26 +2,80 @@ package main;
 
 import se.sics.jasper.*;
 
+import java.io.File;
 import java.util.*;
 
 public class Simple
 {
     public static void main(String[] args) {
+        // read lines from predicate_definitions.txt and generate test queries
+        SICStus sp;
+        Query generateArgsQuery;
+        HashMap<String, SPTerm> argsWayMap = new HashMap<>();
+        List<String> testQueries;
+
+        try {
+            File predicateDefinitions = new File("predicate_definitions.txt");
+            Scanner scanner = new Scanner(predicateDefinitions);
+
+            sp = new SICStus();
+            sp.restore("generators.sav");
+
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                String[] split = line.split(";");
+                String predicate = split[0];
+                String argsRestrictions = split[1];
+
+                generateArgsQuery = sp.openPrologQuery(String.format("input_gen(I, %s).", argsRestrictions), argsWayMap);
+
+                try {
+                    generateArgsQuery.nextSolution();
+                    List<List<String>> generatedArgs = spTermToListOfLists(argsWayMap.get("I").toString());
+                    System.out.println("Generated Arguments");
+                    System.out.println(generatedArgs.toString() + "\n");
+
+                    testQueries = fillArguments(predicate, generatedArgs);
+                    System.out.println("Test Queries");
+                    for (String testQuery : testQueries) {
+                        System.out.println(testQuery);
+                    }
+
+                } catch ( Exception e ) {
+                    System.out.println(e.toString());
+
+//                    if (!e.toString().contains("permission_error")) {
+//                        System.out.println(e.toString());
+//                    }
+                } finally {
+                    generateArgsQuery.close();
+                }
+            }
+            scanner.close();
+        } catch (Exception e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+
+        // iterate through all test queries and print SLD tree
         if (args.length < 1) {
             System.out.println("Please enter a test query");
             return;
         }
-        SICStus sp;
         Query modelQuery;
         HashMap<String, SPTerm> modelWayMap = new HashMap<>();
         try {
             sp = new SICStus();
             sp.restore("compare_dynamic.sav");
             String testQuery = args[0];
+            if (testQuery.charAt(testQuery.length()-1) == '.') {
+                testQuery = testQuery.substring(0, testQuery.length()-1);
+            }
+
             modelQuery = sp.openPrologQuery(String.format("solve(model:%s, P).", testQuery), modelWayMap);
             try {
                 while (modelQuery.nextSolution()) {
-                    ArrayList<ArrayList<String>> modelSLD = spTermToListOfLists(modelWayMap.get("P").toString());
+                    List<List<String>> modelSLD = spTermToListOfLists(modelWayMap.get("P").toString());
                     System.out.println(modelSLD.toString() + "\n");
                 }
             } catch ( Exception e ) {
@@ -36,7 +90,33 @@ public class Simple
         }
     }
 
-    public static ArrayList<String> splitIntoArray(String input) {
+    private static List<String> fillArguments(String predicate, List<List<String>> generatedArgs) {
+        char variable = 'A';
+        while (predicate.indexOf('-') != -1) {
+            predicate = predicate.replaceFirst("-", String.valueOf(variable));
+            variable++;
+            System.out.println(predicate);
+        }
+
+
+        List<String> predicates = Collections.nCopies(1, predicate);
+//        String predicate_backup = predicate;
+        for (List<String> generatedArg : generatedArgs) {
+            List<String> new_predicates = new ArrayList<>();
+
+            for (String partial_predicate : predicates) {
+                for (String arg : generatedArg) {
+                    new_predicates.add(partial_predicate.replaceFirst("\\+", arg));
+                }
+            }
+
+            predicates = new ArrayList<>(new_predicates);
+        }
+
+        return predicates;
+    }
+
+    public static List<String> splitIntoArray(String input) {
         // splits a string into an array of string based on commas which are not enclosed in quotes
 
         // remove initial and last []
@@ -48,7 +128,7 @@ public class Simple
         int precedingQuotes = 0;
         Set<Character> openingQuotes = new HashSet<>(Arrays.asList('(', '['));
         Set<Character> closingQuotes = new HashSet<>(Arrays.asList(')', ']'));
-        ArrayList<String> stringArrayList = new ArrayList<>();
+        List<String> stringArrayList = new ArrayList<>();
 
         for (int current = 0; current < input.length(); current++) {
             if (openingQuotes.contains(input.charAt(current))) {
@@ -65,11 +145,11 @@ public class Simple
         return stringArrayList;
     }
 
-    public static ArrayList<ArrayList<String>> spTermToListOfLists(String spTerm) {
+    public static List<List<String>> spTermToListOfLists(String spTerm) {
         String sld = spTermToListOfListsString(spTerm);
-        ArrayList<String> subResults = splitIntoArray(sld);
+        List<String> subResults = splitIntoArray(sld);
 
-        ArrayList<ArrayList<String>> result = new ArrayList<>();
+        List<List<String>> result = new ArrayList<>();
         for (String layer : subResults) {
             result.add(splitIntoArray(layer));
         }
@@ -134,9 +214,10 @@ public class Simple
                 result.append(spTerm.charAt(i));
             }
         }
-        System.out.println(roundCount);
-        System.out.println(squareCount);
-        System.out.println(tupleCount);
+//        System.out.println(roundCount);
+//        System.out.println(squareCount);
+//        System.out.println(tupleCount);
+
         return result.toString();
     }
 }
