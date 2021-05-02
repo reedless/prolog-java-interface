@@ -2,14 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5e6dfad7-b43c-4966-a4d4-ad3b361dcabc" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/generators.pl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/generators.sav" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/predicate_definitions.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/Simple.class" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/Simple.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/Simple.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/Simple.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/predicate_definitions.txt" beforeDir="false" afterPath="$PROJECT_DIR$/src/predicate_definitions.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

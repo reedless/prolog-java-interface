@@ -9,8 +9,13 @@ public class Simple
 {
     public static void main(String[] args) {
         // read lines from predicate_definitions.txt and generate test queries
+
+
+
+
         SICStus sp;
         Query generateArgsQuery;
+        Query optionalGenerateArgsQuery;
         HashMap<String, SPTerm> argsWayMap = new HashMap<>();
         List<String> testQueries;
 
@@ -24,32 +29,57 @@ public class Simple
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
                 String[] split = line.split(";");
+
                 String predicate = split[0];
                 String argsRestrictions = split[1];
+                String optionalArgsRestrictions = "";
+                if (split.length == 3) {
+                    optionalArgsRestrictions = split[2];
+                }
+
+                List<List<String>> generatedArgs = null;
+                List<List<String>> optionalGeneratedArgs = null;
+
+                System.out.println(predicate);
+                System.out.println(argsRestrictions);
+                System.out.println(optionalArgsRestrictions);
 
                 generateArgsQuery = sp.openPrologQuery(String.format("input_gen(I, %s).", argsRestrictions), argsWayMap);
 
                 try {
                     generateArgsQuery.nextSolution();
-                    List<List<String>> generatedArgs = spTermToListOfLists(argsWayMap.get("I").toString());
+                    generatedArgs = spTermToListOfLists(argsWayMap.get("I").toString());
                     System.out.println("Generated Arguments");
                     System.out.println(generatedArgs.toString() + "\n");
-
-                    testQueries = fillArguments(predicate, generatedArgs);
-                    System.out.println("Test Queries");
-                    for (String testQuery : testQueries) {
-                        System.out.println(testQuery);
-                    }
-
+                    System.out.println("");
                 } catch ( Exception e ) {
                     System.out.println(e.toString());
-
-//                    if (!e.toString().contains("permission_error")) {
-//                        System.out.println(e.toString());
-//                    }
                 } finally {
                     generateArgsQuery.close();
                 }
+
+                if (!optionalArgsRestrictions.isEmpty()) {
+                    optionalGenerateArgsQuery = sp.openPrologQuery(String.format("input_gen(I, %s).",
+                            optionalArgsRestrictions), argsWayMap);
+                    try {
+                        optionalGenerateArgsQuery.nextSolution();
+                        optionalGeneratedArgs = spTermToListOfLists(argsWayMap.get("I").toString());
+                        System.out.println("Generated Arguments");
+                        System.out.println(optionalGeneratedArgs.toString() + "\n");
+                        System.out.println("");
+                    } catch ( Exception e ) {
+                        System.out.println(e.toString());
+                    } finally {
+                        optionalGenerateArgsQuery.close();
+                    }
+                }
+
+                testQueries = fillArguments(predicate, generatedArgs);
+                System.out.println("Test Queries");
+                for (String testQuery : testQueries) {
+                    System.out.println(testQuery);
+                }
+
             }
             scanner.close();
         } catch (Exception e) {
@@ -100,7 +130,6 @@ public class Simple
 
 
         List<String> predicates = Collections.nCopies(1, predicate);
-//        String predicate_backup = predicate;
         for (List<String> generatedArg : generatedArgs) {
             List<String> new_predicates = new ArrayList<>();
 
