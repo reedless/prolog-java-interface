@@ -92,43 +92,43 @@ public class Simple
 
             }
             System.out.println("=====Test Queries=====");
-//            System.out.println(testQueries.size());
-            for (String testQuery : testQueries) {
-                System.out.println(testQuery);
-            }
-
-            // iterate through all test queries and print SLD tree
-            if (args.length < 1) {
-                System.out.println("Please enter a test query");
-                return;
-            }
             Query modelQuery;
-            HashMap<String, SPTerm> modelWayMap = new HashMap<>();
+            HashMap<String, SPTerm> modelWayMap;
+
             try {
                 sp = new SICStus();
                 sp.restore("compare_dynamic.sav");
-                String testQuery = args[0];
-                if (testQuery.charAt(testQuery.length()-1) == '.') {
-                    testQuery = testQuery.substring(0, testQuery.length()-1);
-                }
 
-                modelQuery = sp.openPrologQuery(String.format("solve(model:%s, P).", testQuery), modelWayMap);
-                try {
-                    while (modelQuery.nextSolution()) {
+                for (String testQuery : testQueries) {
+                    System.out.println(testQuery);
+                    if (testQuery.substring(0, 4).equals("test")) {
+                        break;
+                    }
+
+                    if (testQuery.charAt(testQuery.length()-1) == '.') {
+                        testQuery = testQuery.substring(0, testQuery.length()-1);
+                    }
+
+                    modelWayMap = new HashMap<>();
+                    modelQuery = sp.openPrologQuery(String.format("solve(model:%s, P).", testQuery), modelWayMap);
+
+                    try {
+                        modelQuery.nextSolution();
                         List<List<String>> modelSLD = spTermToListOfLists(modelWayMap.get("P").toString());
                         System.out.println(modelSLD.toString() + "\n");
+                    } catch ( Exception e ) {
+                        if (!e.toString().contains("permission_error")) {
+                            System.out.println(e.toString());
+                        }
+                    } finally {
+                        modelQuery.close();
                     }
-                } catch ( Exception e ) {
-                    if (!e.toString().contains("permission_error")) {
-                        System.out.println(e.toString());
-                    }
-                } finally {
-                    modelQuery.close();
+
                 }
-            } catch ( Exception e ) {
+
+            } catch (Exception e) {
                 e.printStackTrace();
             }
-
         }
     }
 
