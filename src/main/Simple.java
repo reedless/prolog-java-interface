@@ -11,64 +11,64 @@ public class Simple
     public static void main(String[] args) {
         spTermToListOfLists(".(.(safe_helper(.(.(h,[]),.(.(z,[]),[]))),[]),.(.(safe_helper(.([],.([],[]))),[]),.(.(true,[]),[])))");
 
-//        // read lines from predicate_definitions.txt and generate test queries
-//        // then, pass them to get SLD trees
-//
-//        // First, read from file
-//        File predicateDefinitions = new File("predicate_definitions.txt");
-//        Scanner scanner = null;
-//        try {
-//            scanner = new Scanner(predicateDefinitions);
-//        } catch (FileNotFoundException ex) {
-//            ex.printStackTrace();
-//        }
-//
-//        try {
-//            // initialise SICStus objects, used to query
-//            SICStus sp_generator = new SICStus();
-//            sp_generator.restore("generators.sav");
-//
-//            SICStus sp_compare = new SICStus();
-//            sp_compare.restore("compare_dynamic.sav");
-//
-//            assert scanner != null;
-//            while (scanner.hasNextLine()) {
-//                String line = scanner.nextLine();
-//                String[] split = line.split(";");
-//
-//                String predicate = split[0];
-//                String argsRestrictions = split[1];
-//                String optionalArgsRestrictions = "";
-//                if (split.length == 3) {
-//                    optionalArgsRestrictions = split[2];
-//                }
-//
-//                // generate args for + inputs
-//                List<List<String>> generatedArgs = generateArgs(sp_generator, argsRestrictions);
-//                System.out.println("Generated Arguments");
-//                System.out.println(generatedArgs.toString() + "\n");
-//
-//                // generate args for ? inputs, if applicable
-//                List<List<String>> optionalGeneratedArgs = null;
-//                if (!optionalArgsRestrictions.isEmpty()) {
-//                    optionalGeneratedArgs = generateArgs(sp_generator, optionalArgsRestrictions);
-//                    System.out.println("Generated Arguments");
-//                    System.out.println(optionalGeneratedArgs.toString() + "\n");
-//                }
-//
-//                // fill predicate with generated args
-//                List<String> testQueries = fillArguments(predicate, generatedArgs);
-//                if (optionalGeneratedArgs != null) {
-//                    testQueries = fillArgumentsQuestion(testQueries, optionalGeneratedArgs);
-//                }
-//
-//                // compare test queries
-//                System.out.println("=====Test Queries=====");
-//                compareTestQueries(sp_compare, testQueries);
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
+        // read lines from predicate_definitions.txt and generate test queries
+        // then, pass them to get SLD trees
+
+        // First, read from file
+        File predicateDefinitions = new File("predicate_definitions.txt");
+        Scanner scanner = null;
+        try {
+            scanner = new Scanner(predicateDefinitions);
+        } catch (FileNotFoundException ex) {
+            ex.printStackTrace();
+        }
+
+        try {
+            // initialise SICStus objects, used to query
+            SICStus sp_generator = new SICStus();
+            sp_generator.restore("generators.sav");
+
+            SICStus sp_compare = new SICStus();
+            sp_compare.restore("compare_dynamic.sav");
+
+            assert scanner != null;
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                String[] split = line.split(";");
+
+                String predicate = split[0];
+                String argsRestrictions = split[1];
+                String optionalArgsRestrictions = "";
+                if (split.length == 3) {
+                    optionalArgsRestrictions = split[2];
+                }
+
+                // generate args for + inputs
+                List<List<String>> generatedArgs = generateArgs(sp_generator, argsRestrictions);
+                System.out.println("Generated Arguments");
+                System.out.println(generatedArgs.toString() + "\n");
+
+                // generate args for ? inputs, if applicable
+                List<List<String>> optionalGeneratedArgs = null;
+                if (!optionalArgsRestrictions.isEmpty()) {
+                    optionalGeneratedArgs = generateArgs(sp_generator, optionalArgsRestrictions);
+                    System.out.println("Generated Arguments");
+                    System.out.println(optionalGeneratedArgs.toString() + "\n");
+                }
+
+                // fill predicate with generated args
+                List<String> testQueries = fillArguments(predicate, generatedArgs);
+                if (optionalGeneratedArgs != null) {
+                    testQueries = fillArgumentsQuestion(testQueries, optionalGeneratedArgs);
+                }
+
+                // compare test queries
+                System.out.println("=====Test Queries=====");
+                compareTestQueries(sp_compare, testQueries);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private static void compareTestQueries(SICStus sp_compare, List<String> testQueries) throws Exception {
@@ -244,107 +244,57 @@ public class Simple
         StringBuilder result = new StringBuilder();
         int n = spTerm.length();
 
-        System.out.println(spTerm);
-
         for (int i = 0; i < n; i++) {
             if (i+2 < n && spTerm.charAt(i) == ',' && spTerm.charAt(i+1) == '.' && spTerm.charAt(i+2) == '(') {
-                System.out.println("1");
-
                 // replace ,.( which means inside a list with , seperator
                 endOfList = false;
                 endOfTuple = false;
                 result.append(',');
-
-                System.out.println(result);
-
                 roundCount++;
-
-                System.out.println(roundCount);
-
                 i += 2;
             } else if (i+1 < n && spTerm.charAt(i) == '.' && spTerm.charAt(i+1) == '(') {
-                System.out.println("2");
-
                 // replace .( with start of list [
                 endOfList = false;
                 endOfTuple = false;
                 result.append('[');
-
-                System.out.println(result);
-
                 squareCount++;
                 i++;
             } else if (i+1 < n && spTerm.charAt(i) == ',' && spTerm.charAt(i+1) == '(') {
-                System.out.println("3");
-
                 // replace tuples with empty
                 endOfList = false;
                 endOfTuple = false;
                 tupleCount++;
                 i++;
-            } else if (spTerm.charAt(i) == ')' && endOfList && roundCount > squareCount) {
-                System.out.println("4");
-
+            } else if (spTerm.charAt(i) == ')' && roundCount > 0 && endOfList) {
                 // remove excess ) at end of a list
-
-                System.out.println(roundCount);
-                System.out.println(result);
-
                 roundCount--;
             } else if (spTerm.charAt(i) == ')' && tupleCount > 0 && endOfTuple) {
-                System.out.println("5");
-
                 // remove excess ) at end of a tuple
                 tupleCount--;
-            } else if (i+1 < n && spTerm.charAt(i) == ')' && spTerm.charAt(i+1) == ')' && tupleCount > 0) {
-                System.out.println("6");
-
+            } else if (i+1 < n && spTerm.charAt(i) == ')' && spTerm.charAt(i+1) == ')') {
                 /*
                 TODO: Might not be true
                 is at end of tuple
                 */
                 endOfTuple = true;
                 result.append(')');
-
-                System.out.println(result);
-
-                i++;
-
             } else if (i+3 < n && spTerm.charAt(i) == ',' && spTerm.charAt(i+1) == '[' && spTerm.charAt(i+2) == ']'
                        && spTerm.charAt(i+3) == ')' && squareCount > 0) {
-                System.out.println("7");
-
-                // flag for when at end of list, replace ,[]) with ]
+                // flag for when at end of list, replace with ]
                 endOfList = true;
                 endOfTuple = false;
                 result.append(']');
-
-                System.out.println(result);
-
                 squareCount--;
-
-                System.out.println(roundCount);
-                System.out.println(squareCount);
-
                 i += 3;
-
-                System.out.println(spTerm.charAt(i) == ')');
-                System.out.println(roundCount > squareCount);
-
             } else {
-                System.out.println("8");
-
                 endOfList = false;
                 endOfTuple = false;
                 result.append(spTerm.charAt(i));
-
-                System.out.println(result);
             }
         }
-
-        System.out.println(roundCount);
-        System.out.println(squareCount);
-        System.out.println(tupleCount);
+//        System.out.println(roundCount);
+//        System.out.println(squareCount);
+//        System.out.println(tupleCount);
 
         return result.toString();
     }
