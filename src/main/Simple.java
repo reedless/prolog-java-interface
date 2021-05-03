@@ -102,7 +102,7 @@ public class Simple
                 for (String testQuery : testQueries) {
                     System.out.println(testQuery);
                     if (testQuery.substring(0, 4).equals("test")) {
-                        break;
+                        continue;
                     }
 
                     if (testQuery.charAt(testQuery.length()-1) == '.') {
