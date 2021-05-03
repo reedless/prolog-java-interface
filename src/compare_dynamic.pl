@@ -1,6 +1,6 @@
-:- load_files(student, []).
-:- load_files(model, []).
-:- load_files(library(lists), []).
+:- load_files(student).
+:- load_files(model).
+:- use_module(library(lists)).
 
 :- set_prolog_flag(toplevel_print_options,[quoted(true), portrayed(true), max_depth(0)]).
 
@@ -58,6 +58,10 @@ solve(_:A, [[false]]) :- predicate_property(A,built_in), \+ call(A).
 
 solve(_:A, [[true]]) :- predicate_property(A,autoload(_)), call(A).
 solve(_:A, [[false]]) :- predicate_property(A,autoload(_)), \+ call(A).
+
+% % catch static? for append/3
+% solve(_:A, [[true]]) :- predicate_property(A,static), call(A).
+% solve(_:A, [[false]]) :- predicate_property(A,static), \+ call(A).
 
 solve(M:A, [[B] | SLD]) :- % SLD should be a list of lists
     clause(M:A,B),
