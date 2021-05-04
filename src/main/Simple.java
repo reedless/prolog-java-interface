@@ -213,159 +213,6 @@ public class Simple
         return predicates;
     }
 
-//    private static List<String> splitIntoArray(String input) {
-//        // splits a string into an array of string based on commas which are not enclosed in quotes
-//
-//        // remove initial and last []
-//        if (input.charAt(0) == '[' && input.charAt(input.length()-1) == ']') {
-//            input = input.substring(1, input.length()-1);
-//        }
-//
-//        int start = 0;
-//        int precedingQuotes = 0;
-//        Set<Character> openingQuotes = new HashSet<>(Arrays.asList('(', '['));
-//        Set<Character> closingQuotes = new HashSet<>(Arrays.asList(')', ']'));
-//        List<String> stringArrayList = new ArrayList<>();
-//
-//        for (int current = 0; current < input.length(); current++) {
-//            if (openingQuotes.contains(input.charAt(current))) {
-//                precedingQuotes++;
-//            } else if (closingQuotes.contains(input.charAt(current))) {
-//                precedingQuotes--;
-//            } else if (input.charAt(current) == ',' && precedingQuotes == 0) {
-//                stringArrayList.add(input.substring(start, current));
-//                start = current + 1;
-//            }
-//        }
-//        stringArrayList.add(input.substring(start));
-//
-//        return stringArrayList;
-//    }
-
-//    private static List<List<String>> spTermToListOfLists(String spTerm) {
-//        String sld = spTermToListOfListsString(spTerm);
-//        List<String> subResults = splitIntoArray(sld);
-//
-//        List<List<String>> result = new ArrayList<>();
-//        for (String layer : subResults) {
-//            result.add(splitIntoArray(layer));
-//        }
-//
-//        return result;
-//    }
-
-//    private static String spTermToListOfListsString(String spTerm) {
-//
-//        StringBuilder result = new StringBuilder();
-//        Queue<String> brackets = new ArrayDeque<>();
-//        int n = spTerm.length();
-//
-//        for (int i = 0; i < n; i++) {
-//            System.out.println(brackets);
-//            if (i+2 < n && spTerm.charAt(i) == ',' && spTerm.charAt(i+1) == '.' && spTerm.charAt(i+2) == '(') {
-//                // replace ,.( which means inside a list with , seperator
-//                result.append(',');
-//                brackets.add(")");
-//                i += 2;
-//            } else if (i+1 < n && spTerm.charAt(i) == '.' && spTerm.charAt(i+1) == '(') {
-//                // replace .( with start of list [
-//                result.append('[');
-//                brackets.add("]");
-//                i++;
-//            } else if (i+1 < n && spTerm.charAt(i) == ',' && spTerm.charAt(i+1) == '(') {
-//                // replace tuples with empty
-//                i++;
-//            } else if (spTerm.charAt(i) == ')' && brackets.element().equals(")")) {
-//                // remove excess ) at end of a list
-//                brackets.remove();
-//            } else if (spTerm.charAt(i) == ')' && tupleCount > 0 && endOfTuple) {
-//                // remove excess ) at end of a tuple
-//                ;
-//            } else if (i+1 < n && spTerm.charAt(i) == ')' && spTerm.charAt(i+1) == ')') {
-//                /*
-//                TODO: Might not be true
-//                is at end of tuple
-//                */
-//                endOfTuple = true;
-//                result.append(')');
-//            } else if (i+3 < n && spTerm.charAt(i) == ',' && spTerm.charAt(i+1) == '[' && spTerm.charAt(i+2) == ']'
-//                    && spTerm.charAt(i+3) == ')' && brackets.element().equals("]")) {
-//                // flag for when at end of list, replace with ]
-//
-//                result.append(']');
-//                brackets.remove();
-//                i += 3;
-//            } else {
-//                result.append(spTerm.charAt(i));
-//            }
-//        }
-//
-//        return result.toString();
-//    }
-
-//    private static String spTermToListOfListsString(String spTerm) {
-//        int squareCount = 0;
-//        int roundCount = 0;
-//        int tupleCount = 0;
-//
-//        boolean endOfList = false;
-//        boolean endOfTuple = false;
-//
-//        StringBuilder result = new StringBuilder();
-//        int n = spTerm.length();
-//
-//        for (int i = 0; i < n; i++) {
-//            if (i+2 < n && spTerm.charAt(i) == ',' && spTerm.charAt(i+1) == '.' && spTerm.charAt(i+2) == '(') {
-//                // replace ,.( which means inside a list with , seperator
-//                endOfList = false;
-//                endOfTuple = false;
-//                result.append(',');
-//                roundCount++;
-//                i += 2;
-//            } else if (i+1 < n && spTerm.charAt(i) == '.' && spTerm.charAt(i+1) == '(') {
-//                // replace .( with start of list [
-//                endOfList = false;
-//                endOfTuple = false;
-//                result.append('[');
-//                squareCount++;
-//                i++;
-//            } else if (i+1 < n && spTerm.charAt(i) == ',' && spTerm.charAt(i+1) == '(') {
-//                // replace tuples with empty
-//                endOfList = false;
-//                endOfTuple = false;
-//                tupleCount++;
-//                i++;
-//            } else if (spTerm.charAt(i) == ')' && roundCount > 0 && endOfList) {
-//                // remove excess ) at end of a list
-//                roundCount--;
-//            } else if (spTerm.charAt(i) == ')' && tupleCount > 0 && endOfTuple) {
-//                // remove excess ) at end of a tuple
-//                tupleCount--;
-//            } else if (i+1 < n && spTerm.charAt(i) == ')' && spTerm.charAt(i+1) == ')') {
-//                /*
-//                TODO: Might not be true
-//                is at end of tuple
-//                */
-//                endOfTuple = true;
-//                result.append(')');
-//            } else if (i+3 < n && spTerm.charAt(i) == ',' && spTerm.charAt(i+1) == '[' && spTerm.charAt(i+2) == ']'
-//                       && spTerm.charAt(i+3) == ')' && squareCount > 0) {
-//                // flag for when at end of list, replace with ]
-//                endOfList = true;
-//                endOfTuple = false;
-//                result.append(']');
-//                squareCount--;
-//                i += 3;
-//            } else {
-//                endOfList = false;
-//                endOfTuple = false;
-//                result.append(spTerm.charAt(i));
-//            }
-//        }
-//
-//        return result.toString();
-//    }
-
     private static String spTermToString(String spTerm) {
         int squareCount = 0;
         int roundCount = 0;
@@ -425,7 +272,6 @@ public class Simple
                 result.append(spTerm.charAt(i));
             }
         }
-
         return result.toString();
     }
 
@@ -448,12 +294,12 @@ public class Simple
 
         try {
             SPTerm[] list = spTerm.toTermArray();
+
             for (SPTerm layer : list) {
                 List<String> innerListString = new ArrayList<>();
                 SPTerm[] inner = layer.toTermArray();
                 
                 for (SPTerm term : inner) {
-                    // convert term to string
                     String termString = spTermToString(term.toString());
                     innerListString.add(termString);
                 }
@@ -463,7 +309,6 @@ public class Simple
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return result;
     }
 }
