@@ -93,8 +93,6 @@ public class Simple
     }
 
     private static void compareTestQueries(SICStus sp_compare, List<String> testQueries) throws Exception {
-        HashMap<String, SPTerm> modelWayMap;
-        Query modelQuery;
 
         for (String testQuery : testQueries) {
             // don't compare test queries
@@ -271,20 +269,6 @@ public class Simple
                 endOfTuple = false;
                 result.append(spTerm.charAt(i));
             }
-        }
-        return result.toString();
-    }
-
-    private static String spTermToListOfListsString(SPTerm spTerm) {
-        StringBuilder result = new StringBuilder();
-        try {
-            SPTerm[] list = spTerm.toTermArray();
-            for (SPTerm item : list) {
-                result.append(Arrays.toString(item.toTermArray()));
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return result.toString();
     }
