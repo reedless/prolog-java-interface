@@ -9,28 +9,30 @@ import java.util.*;
 public class Simple
 {
     public static void main(String[] args) {
-        try {
-            SICStus sp = new SICStus();
-            sp.restore("compare_dynamic.sav");
-
-            HashMap<String, SPTerm> wayMap = new HashMap<>();
-            Query query = sp.openPrologQuery(String.format("solve(%s:%s, P).", "student", "safe([[h],[z]])"), wayMap);
-
-            try {
-                while (query.nextSolution()) {
-                    System.out.println(wayMap.get("P").toString());
-                    System.out.println(spTermToListOfLists(wayMap.get("P")));
-                }
-            } catch ( Exception e ) {
-                if (!e.toString().contains("permission_error")) {
-                    System.out.println(e.toString());
-                }
-            } finally {
-                query.close();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        // for testing only
+//
+//        try {
+//            SICStus sp = new SICStus();
+//            sp.restore("compare_dynamic.sav");
+//
+//            HashMap<String, SPTerm> wayMap = new HashMap<>();
+//            Query query = sp.openPrologQuery(String.format("solve(%s:%s, P).", "student", "safe([[h],[z]])"), wayMap);
+//
+//            try {
+//                while (query.nextSolution()) {
+//                    System.out.println(wayMap.get("P").toString());
+//                    System.out.println(spTermToListOfLists(wayMap.get("P")));
+//                }
+//            } catch ( Exception e ) {
+//                if (!e.toString().contains("permission_error")) {
+//                    System.out.println(e.toString());
+//                }
+//            } finally {
+//                query.close();
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
 
         // read lines from predicate_definitions.txt and generate test queries
         // then, pass them to get SLD trees
@@ -45,7 +47,7 @@ public class Simple
         }
 
         try {
-            // initialise SICStus objects, used to query
+            // initialise SICStus objects, used to query predicates
             SICStus sp_generator = new SICStus();
             sp_generator.restore("generators.sav");
 
@@ -86,6 +88,9 @@ public class Simple
                 // compare test queries
                 System.out.println("=====Test Queries=====");
                 compareTestQueries(sp_compare, testQueries);
+                System.out.println("===End Test Queries===");
+                System.out.println("");
+
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -95,7 +100,7 @@ public class Simple
     private static void compareTestQueries(SICStus sp_compare, List<String> testQueries) throws Exception {
 
         for (String testQuery : testQueries) {
-            // don't compare test queries
+            // don't compare queries starting with test
             if (testQuery.substring(0, 4).equals("test")) {
                 continue;
             }
@@ -107,7 +112,86 @@ public class Simple
 
             List<List<List<String>>> modelSLDTrees = getSLDTrees(sp_compare, testQuery, "model");
             List<List<List<String>>> studentSLDTrees = getSLDTrees(sp_compare, testQuery, "student");
+
+            // TODO: semantic comparison of SLD Trees
+
+            // Length comparison, see if student answer is over or under determined
+            // TODO: instead of trim compare most similar?
+            if (studentSLDTrees.size() > modelSLDTrees.size()) {
+                StringBuilder response = new StringBuilder();
+                response.append("Too many answers. Comparing first ");
+                response.append(modelSLDTrees.size());
+                response.append(" answers, ignoring last ");
+                response.append(studentSLDTrees.size() - modelSLDTrees.size());
+                response.append(" answers from student implementation. ");
+
+                response.append("Consider using cuts (!/2) to optimise your code.");
+
+                System.out.println(response.toString());
+
+                studentSLDTrees = studentSLDTrees.subList(0, modelSLDTrees.size());
+
+            } else if (studentSLDTrees.size() < modelSLDTrees.size()) {
+                StringBuilder response = new StringBuilder();
+                response.append("Too few answers. Comparing first ");
+                response.append(studentSLDTrees.size());
+                response.append(" answers, ignoring last ");
+                response.append(modelSLDTrees.size() - studentSLDTrees.size());
+                response.append(" answers from model implementation. ");
+
+                response.append("Consider removing cuts or adding additional predicates.");
+
+                System.out.println(response.toString());
+
+                modelSLDTrees = modelSLDTrees.subList(0, studentSLDTrees.size());
+            }
+
+            for (int i = 0; i < modelSLDTrees.size(); i++) {
+                List<List<String>> modelSLDTree = modelSLDTrees.get(i);
+                List<List<String>> studentSLDTree = studentSLDTrees.get(i);
+                semanticComparison(modelSLDTree, studentSLDTree);
+            }
+
             System.out.println("");
+        }
+    }
+
+    private static void semanticComparison(List<List<String>> modelSLDTree, List<List<String>> studentSLDTree) {
+        if (modelSLDTree.equals(studentSLDTree)) {
+            return;
+        }
+
+        // TODO: compare just length of SLD trees
+
+
+        // iterate through each layer of studentSLDTree and compare to
+        // layers in modelSLDTree
+        for (int i = 0; i < studentSLDTree.size(); i++) {
+            List<String> layer = studentSLDTree.get(i);
+
+            // skip last resolution if it is [true]
+            if (layer.toString().equals("[true]")) {
+                continue;
+            }
+
+            // TODO: increase similarity score, etc.
+            if (layer.equals(modelSLDTree.get(i))) {
+                continue;
+            }
+
+            // returns -1 if does not exist
+            int modelIndex = modelSLDTree.indexOf(layer);
+
+            if (modelIndex == -1) {
+                // TODO: more in depth comparison
+                System.out.println(layer + " is not found in the model SLD tree.");
+            } else {
+                if (modelIndex > i) {
+                    System.out.println(layer + " occurred too early.");
+                } else if (modelIndex < i) {
+                    System.out.println(layer + " occurred too late.");
+                }
+            }
         }
     }
 
@@ -115,7 +199,7 @@ public class Simple
         List<List<List<String>>> SLDTrees = new ArrayList<>();
         HashMap<String, SPTerm> wayMap = new HashMap<>();
         Query query = sp_compare.openPrologQuery(String.format("solve(%s:%s, P).", module, testQuery), wayMap);
-        System.out.println("Solving " + testQuery);
+        System.out.println("Solving " + module + ":" + testQuery);
 
         try {
             while (query.nextSolution()) {
