@@ -161,8 +161,20 @@ public class Simple
             return;
         }
 
-        // TODO: compare just length of SLD trees
-
+        // compare just length of SLD trees
+        int studentLength = studentSLDTree.size();
+        int modelLength = modelSLDTree.size();
+        if (studentLength == modelLength) {
+            System.out.println("Depth of submission's SLD tree is exactly the same as model solution's. Well done!");
+        } else if (studentLength < modelLength) {
+            System.out.println("Depth of submission's SLD tree is shallower than model solution's by "
+                    + (modelLength - studentLength) + ". \n"
+                    + "Predicates may be over-specified, consider making predicates more general.");
+        } else {
+            System.out.println("Depth of submission's SLD tree is deeper than model solution's by "
+                    + (studentLength - modelLength) + ". \n"
+                    + "Consider optimising with built-in predicates or by reducing recursion.");
+        }
 
         // iterate through each layer of studentSLDTree and compare to
         // layers in modelSLDTree
